@@ -19,7 +19,7 @@ mixin JoinerCommandAdapterSqlite {
       buffer.write(table);
     } else {
       table = command.externalTable.nickName;
-      buffer.write('${command.externalTable.fieldName} AS ${command.externalTable.nickName}');
+      buffer.write('"${command.externalTable.fieldName}" AS "${command.externalTable.nickName}"');
     }
 
     buffer.write(' ON ');
@@ -28,9 +28,9 @@ mixin JoinerCommandAdapterSqlite {
 
     for (final condition in command.comparers) {
       if (command.originTable.nickName.isEmpty) {
-        conditions.add('${command.originTable.fieldName}.${condition.originField} = $table.${condition.compareField}');
+        conditions.add('"${command.originTable.fieldName}"."${condition.originField}" = "$table"."${condition.compareField}"');
       } else {
-        conditions.add('${command.originTable.nickName}.${condition.originField} = $table.${condition.compareField}');
+        conditions.add('"${command.originTable.nickName}"."${condition.originField}" = "$table"."${condition.compareField}"');
       }
     }
 

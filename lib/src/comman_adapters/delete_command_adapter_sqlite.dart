@@ -5,7 +5,7 @@ import 'package:maxi_library_db_sqlite/src/sqlite_command_package.dart';
 
 mixin DeleteCommandAdapterSqlite {
   static SqliteCommandPackage convertToPackage({required DeleteCommand command}) {
-    final buffer = StringBuffer('DELETE FROM ${command.tableName}');
+    final buffer = StringBuffer('DELETE FROM "${command.tableName}"');
     final shieldedValues = [];
 
     if (command.conditions.isNotEmpty) {
@@ -21,6 +21,8 @@ mixin DeleteCommandAdapterSqlite {
       final allConditions = TextUtilities.generateCommand(list: conditionTexts, character: ' AND \n');
       buffer.write(allConditions);
     }
+
+    buffer.write(';');
 
     return SqliteCommandPackage(commandText: buffer.toString(), shieldedValues: shieldedValues);
   }

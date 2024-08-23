@@ -6,10 +6,10 @@ import 'package:maxi_library_db_sqlite/src/sqlite_command_package.dart';
 mixin ModifierCommandAdapterSqlite {
   static SqliteCommandPackage convertToPackage({required ModifierCommand command}) {
     final shieldedValues = command.fieldData.values.toList();
-    final buffer = StringBuffer('UPDATE ${command.tableName} SET \n ');
+    final buffer = StringBuffer('UPDATE "${command.tableName}" SET \n ');
 
     final propertyNames = command.fieldData.keys.map((x) => '$x = ?');
-    buffer.write(TextUtilities.generateCommand(list: propertyNames));
+    buffer.write(TextUtilities.generateCommand(list: propertyNames.map((x) => '"$x"')));
 
     if (command.conditions.isNotEmpty) {
       buffer.write('\n WHERE ');
@@ -24,6 +24,7 @@ mixin ModifierCommandAdapterSqlite {
       final allConditions = TextUtilities.generateCommand(list: conditionTexts, character: ' AND \n');
       buffer.write(allConditions);
     }
+    buffer.write(';');
 
     return SqliteCommandPackage(commandText: buffer.toString(), shieldedValues: shieldedValues);
   }

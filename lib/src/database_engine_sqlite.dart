@@ -5,11 +5,16 @@ import 'dart:typed_data';
 
 import 'package:maxi_library/maxi_library.dart';
 import 'package:maxi_library_db/maxi_library_db.dart';
+import 'package:maxi_library_db_sqlite/src/comman_adapters/aggregator_command_adapter_sqlite.dart';
+import 'package:maxi_library_db_sqlite/src/comman_adapters/create_table_adapter_sqlite.dart';
+import 'package:maxi_library_db_sqlite/src/comman_adapters/delete_command_adapter_sqlite.dart';
+import 'package:maxi_library_db_sqlite/src/comman_adapters/modifier_command_adapter_sqlite.dart';
 import 'package:maxi_library_db_sqlite/src/comman_adapters/query_command_adapter_sqlite.dart';
-import 'package:maxi_library_db_sqlite/src/database_sqlite_configuration.dart';
+import 'package:maxi_library_db_sqlite/src/reflection/reflection_implementation.dart';
 import 'package:maxi_library_db_sqlite/src/sqlite_command_package.dart';
 import 'package:sqlite3/sqlite3.dart';
 
+@reflectByMaxiLibraryDbSqlite
 class DataBaseEngineSqlite extends DataBaseEngineTemplate {
   final DatabaseSqliteConfiguration configuration;
 
@@ -18,6 +23,9 @@ class DataBaseEngineSqlite extends DataBaseEngineTemplate {
   DataBaseEngineSqlite({required this.configuration}) {
     fileDirection = DirectoryUtilities.interpretPrefix(configuration.fileDirection);
   }
+
+  @override
+  bool get inTransaction => _inTransaction;
 
   Database? _instance;
   Timer? _databaseShutdownWaiter;
@@ -120,33 +128,9 @@ class DataBaseEngineSqlite extends DataBaseEngineTemplate {
   }
 
   @override
-  Future<bool> checkTableExistsDirectly({required String tableName}) {
-    // TODO: implement checkTableExistsDirectly
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> deleteTableDirectly({required String tableName}) {
-    // TODO: implement deleteTableDirectly
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> executeCommandDirectly({required IDataBaseCommand command}) {
-    // TODO: implement executeCommandDirectly
-    throw UnimplementedError();
-  }
-
-  @override
   Future<TableResult> executeQueryDirectly({required QueryCommand command}) async {
     final package = QueryCommandAdapterSqlite.convertToPackage(command: command);
-    return executeQueryCommand(package);
-  }
-
-  @override
-  Future<List<String>> getTableColumnsNameDirectly({required String tableName}) {
-    // TODO: implement getTableColumnsNameDirectly
-    throw UnimplementedError();
+    return executeQueryPackage(package);
   }
 
   void executeDirectCommand(SqliteCommandPackage package) {
@@ -162,7 +146,7 @@ class DataBaseEngineSqlite extends DataBaseEngineTemplate {
     }
   }
 
-  TableResult executeQueryCommand(SqliteCommandPackage package) {
+  TableResult executeQueryPackage(SqliteCommandPackage package) {
     checkProgrammingFailure(thatChecks: () => tr('The database instance was created previously'), result: () => _instance != null);
     try {
       final result = _instance!.select(package.commandText, serializeListToDatabase(package.shieldedValues));
@@ -174,5 +158,96 @@ class DataBaseEngineSqlite extends DataBaseEngineTemplate {
         cause: ex,
       );
     }
+  }
+
+  void executePackage(SqliteCommandPackage package) {
+    checkProgrammingFailure(thatChecks: () => tr('The database instance was created previously'), result: () => _instance != null);
+    try {
+      _instance!.execute(package.commandText, serializeListToDatabase(package.shieldedValues));
+    } catch (ex) {
+      throw NegativeResult(
+        identifier: NegativeResultCodes.externalFault,
+        message: trc('The execution of a command in the database failed, the error was: %1', [ex.toString()]),
+        cause: ex,
+      );
+    }
+  }
+
+  @override
+  serializeToDatabase(item) {
+    if (item is DateTime) {
+      return ConverterUtilities.toInt(value: item);
+    }
+    if (item is List<int>) {
+      return item;
+    }
+
+    return ReflectionUtilities.primitiveClone(item);
+  }
+
+  @override
+  Future<List<String>> getTableColumnsNameDirectly({required String tableName}) async {
+    final commandText = 'PRAGMA table_info($tableName);';
+    checkProgrammingFailure(thatChecks: () => tr('The database instance was created previously'), result: () => _instance != null);
+
+    final table = executeQueryPackage(SqliteCommandPackage(commandText: commandText, shieldedValues: []));
+
+    if (table.isEmpty) {
+      return [];
+    }
+
+    return table.getColumnContentByName(columnName: 'name').cast<String>();
+  }
+
+  @override
+  Future<bool> checkTableExistsDirectly({required String tableName}) async {
+    final commandText = 'SELECT * FROM sqlite_master WHERE type=\'table\' AND name=?;';
+    checkProgrammingFailure(thatChecks: () => tr('The database instance was created previously'), result: () => _instance != null);
+
+    final table = executeQueryPackage(SqliteCommandPackage(commandText: commandText, shieldedValues: [tableName]));
+    return table.isNotEmpty;
+  }
+
+  @override
+  Future<void> deleteTableDirectly({required String tableName}) async {
+    executePackage(SqliteCommandPackage(commandText: 'DROP TABLE $tableName;', shieldedValues: []));
+  }
+
+  @override
+  Future<void> executeCommandDirectly({required IDataBaseCommand command}) async {
+    if (command is AggregatorCommand) {
+      return executePackage(AggregatorCommandAdapterSqlite.convertToPackage(command: command));
+    }
+
+    if (command is DeleteCommand) {
+      return executePackage(DeleteCommandAdapterSqlite.convertToPackage(command: command));
+    }
+
+    if (command is ModifierCommand) {
+      return executePackage(ModifierCommandAdapterSqlite.convertToPackage(command: command));
+    }
+
+    if (command is CreateTableCommand) {
+      if (await checkTableExistsDirectly(tableName: command.name)) {
+        throw NegativeResult(
+          identifier: NegativeResultCodes.contextInvalidFunctionality,
+          message: trc('The %1 table is already defined', [command.name]),
+        );
+      }
+
+      return executePackage(CreateTableAdapterSqlite.convertToPackage(command: command));
+    }
+
+    if (command is QueryCommand) {
+      throw NegativeResult(
+        identifier: NegativeResultCodes.implementationFailure,
+        message: tr('A query command was attempted to be executed within a direct command function'),
+      );
+    }
+
+    throw NegativeResult(
+      identifier: NegativeResultCodes.implementationFailure,
+      message: trc('Command type %1 is unknown for the sqlite engine', [command.runtimeType.toString()]),
+    );
   }
 }

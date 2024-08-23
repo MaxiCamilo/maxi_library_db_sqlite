@@ -1,16 +1,31 @@
+import 'dart:developer';
+
 import 'package:maxi_library/maxi_library.dart';
 import 'package:maxi_library_db/maxi_library_db.dart';
 import 'package:maxi_library_db_sqlite/src/sqlite_command_package.dart';
 
 mixin CreateTableAdapterSqlite {
   static SqliteCommandPackage convertToPackage({required CreateTableCommand command}) {
+    if (command.primaryKeyGroups.isEmpty &&
+        command.uniqueKeyGroups.isEmpty &&
+        command.foreignKeys.isEmpty &&
+        !command.columns.any((x) => x.isPrimaryKey && !x.isAutoIncrement) &&
+        !command.columns.any((x) => x.isUniqueKey)) {
+      return _convertToSimplePackage(command);
+    }
+
     final buffer = StringBuffer('CREATE TABLE ${command.name} (\n');
 
     for (final col in command.columns) {
-      buffer.write(' ${col.nameColumn} ${_convertColumnType(col.type)}, \n');
+      buffer.write(' "${col.nameColumn}" ${_convertColumnType(col.type)} NOT NULL');
+      if (col.isPrimaryKey && col.isAutoIncrement) {
+        buffer.write(' PRIMARY KEY AUTOINCREMENT');
+      }
+
+      buffer.write(', \n');
     }
 
-    for (final pri in command.columns.where((x) => x.isPrimaryKey)) {
+    for (final pri in command.columns.where((x) => x.isPrimaryKey && !x.isAutoIncrement)) {
       buffer.write(' PRIMARY KEY (${pri.nameColumn})\n');
     }
 
@@ -39,6 +54,9 @@ mixin CreateTableAdapterSqlite {
     }
 
     buffer.write(');');
+
+    log(buffer.toString());
+
     return SqliteCommandPackage(commandText: buffer.toString(), shieldedValues: []);
   }
 
@@ -62,5 +80,25 @@ mixin CreateTableAdapterSqlite {
       ColumnAttributesType.binary => 'BLOB',
       ColumnAttributesType.dynamicType => 'BLOB',
     };
+  }
+
+  static SqliteCommandPackage _convertToSimplePackage(CreateTableCommand command) {
+    final buffer = StringBuffer('CREATE TABLE ${command.name} (\n');
+
+    for (final col in command.columns) {
+      buffer.write(' "${col.nameColumn}" ${_convertColumnType(col.type)} NOT NULL');
+      if (col.isPrimaryKey && col.isAutoIncrement) {
+        buffer.write(' PRIMARY KEY AUTOINCREMENT');
+      }
+      if (col == command.columns.last) {
+        buffer.write('\n');
+      } else {
+        buffer.write(',\n');
+      }
+    }
+
+    buffer.write(');');
+
+    return SqliteCommandPackage(commandText: buffer.toString(), shieldedValues: []);
   }
 }

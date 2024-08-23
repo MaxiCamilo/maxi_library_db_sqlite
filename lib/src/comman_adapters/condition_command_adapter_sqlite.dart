@@ -16,7 +16,7 @@ mixin ConditionCommandAdapterSqlite {
 
   //Ex: name = 'Maxi' (or shieldValue == true: name = ?)
   static SqliteCommandPackage _convertCompareValue(CompareValue command) {
-    final generalCommandText = '${command.originField} ${convertConditionCompareToText(command.typeComparation)} ';
+    final generalCommandText = '"${command.originField}" ${convertConditionCompareToText(command.typeComparation)} ';
 
     if (command.shieldValue) {
       return SqliteCommandPackage(commandText: '$generalCommandText ?', shieldedValues: [command.value]);
@@ -27,7 +27,7 @@ mixin ConditionCommandAdapterSqlite {
   }
 
   static SqliteCommandPackage _convertField(CompareFields command) {
-    return SqliteCommandPackage(commandText: '${command.originField} ${convertConditionCompareToText(command.typeComparation)} ${command.compareField}', shieldedValues: []);
+    return SqliteCommandPackage(commandText: '"${command.originField}" ${convertConditionCompareToText(command.typeComparation)} "${command.compareField}"', shieldedValues: []);
   }
 
   static SqliteCommandPackage _convertIncludeValues(CompareIncludesValues command) {
@@ -68,9 +68,9 @@ mixin ConditionCommandAdapterSqlite {
 
   static SqliteCommandPackage _convertSimilarText(CompareSimilarText command) {
     if (command.shieldValue) {
-      return SqliteCommandPackage(commandText: '${command.fieldName} LIKE ?', shieldedValues: [command.similarText]);
+      return SqliteCommandPackage(commandText: '"${command.fieldName}" LIKE ?', shieldedValues: [command.similarText]);
     } else {
-      return SqliteCommandPackage(commandText: '${command.fieldName} LIKE \'${command.similarText}\'', shieldedValues: []);
+      return SqliteCommandPackage(commandText: '"${command.fieldName}" LIKE \'${command.similarText}\'', shieldedValues: []);
     }
   }
 

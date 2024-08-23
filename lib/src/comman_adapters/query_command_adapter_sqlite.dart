@@ -30,7 +30,7 @@ mixin QueryCommandAdapterSqlite {
     }
 
     if (command.grouped.isNotEmpty) {
-      buffer.write('\n GROUP BY ${TextUtilities.generateCommand(list: command.grouped)} ');
+      buffer.write('\n GROUP BY ${TextUtilities.generateCommand(list: command.grouped.map((x) => '"$x"'))} ');
     }
 
     if (command.havings.isNotEmpty) {
@@ -46,6 +46,8 @@ mixin QueryCommandAdapterSqlite {
       buffer.write('\n LIMIT ${command.limit}');
     }
 
+    buffer.write(';');
+
     return SqliteCommandPackage(commandText: buffer.toString(), shieldedValues: shieldedValues);
   }
 
@@ -55,10 +57,8 @@ mixin QueryCommandAdapterSqlite {
       late String text;
       if (field.fieldName == '') {
         text = '*';
-      } else if (field.nickName == '') {
-        text = field.fieldName;
       } else {
-        text = '${field.fieldName} AS ${field.nickName}';
+        text = '"${field.fieldName}"';
       }
 
       switch (field.type) {
@@ -73,9 +73,16 @@ mixin QueryCommandAdapterSqlite {
         case QueryFieldType.minimum:
           text = 'MIN($text)';
           break;
+        case QueryFieldType.sum:
+          text = 'SUM($text)';
+          break;
         case QueryFieldType.average:
           text = 'AVG($text)';
           break;
+      }
+
+      if (field.nickName != '') {
+        text = '$text AS "${field.nickName}"';
       }
 
       textsCommands.add(text);
@@ -103,6 +110,7 @@ mixin QueryCommandAdapterSqlite {
     for (final condition in command.conditions) {
       final conv = ConditionCommandAdapterSqlite.convertToPackage(command: condition);
       shieldedValues.addAll(conv.shieldedValues);
+      textsCommands.add(conv.commandText);
     }
     buffer.write(TextUtilities.generateCommand(list: textsCommands, character: ' AND \n'));
   }
@@ -120,7 +128,7 @@ mixin QueryCommandAdapterSqlite {
 
   static void _convertOrderBy(QueryCommand command, StringBuffer buffer, List shieldedValues) {
     for (final item in command.orders) {
-      buffer.write('\n ORDER BY ${TextUtilities.generateCommand(list: item.fields)} ${item.isAscendent ? 'ASC' : 'DESC'}');
+      buffer.write('\n ORDER BY ${TextUtilities.generateCommand(list: item.fields.map((x) => '"$x"'))} ${item.isAscendent ? 'ASC' : 'DESC'}');
     }
   }
 }
