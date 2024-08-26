@@ -9,9 +9,12 @@ import 'package:maxi_library_db/maxi_library_db.dart';
 import 'package:maxi_library_db_sqlite/src/reflection/reflection_implementation.dart';
 import 'package:test/test.dart';
 
+import 'models/maxi_library_db_sqlite_test_reflector.dart';
+import 'models/reflector_test.dart';
+
 class _ReflectorsCatalog extends ReflectorsCatalog {
   @override
-  List<ReflectorInstance> get instances => const [MaxiLibraryDbSqliteReflector()];
+  List<ReflectorInstance> get instances => const [MaxiLibraryDbSqliteReflector(), MaxiLibraryDbSqliteTestReflector()];
   const _ReflectorsCatalog();
 }
 
@@ -181,7 +184,7 @@ void main() {
 
     test('Test stream table', () async {
       final engine = dataBase.generateEngine();
-      final table = TableOperator(
+      final table = DatabaseTableOperator(
         engine: engine,
         tableName: 'many_items',
         columns: [
@@ -205,6 +208,19 @@ void main() {
           log('sent a list with ${x.length} items');
         },
       );
+    });
+
+    test('test table operator initializer', () async {
+      final engine = dataBase.generateEngine();
+      final entity = DatabaseEntityOperator<Person>(engine: engine, tableName: 'v1_employer');
+      await entity.initialize();
+
+      await entity.editor.add(
+          value: Person()
+            ..name = 'Maxi'
+            ..age = 28
+            ..isBoss = true
+            ..salary = 99.99);
     });
   });
 }
