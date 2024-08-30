@@ -16,17 +16,21 @@ mixin ConditionCommandAdapterSqlite {
 
   //Ex: name = 'Maxi' (or shieldValue == true: name = ?)
   static SqliteCommandPackage _convertCompareValue(CompareValue command) {
-    final generalCommandText = '"${command.originField}" ${convertConditionCompareToText(command.typeComparation)} ';
+    String generalCommandText = command.selectedTable.isNotEmpty ? '"${command.selectedTable}"."${command.originField}"' : '"${command.originField}"';
+    generalCommandText += ' ${convertConditionCompareToText(command.typeComparation)} ';
 
     if (command.shieldValue) {
       return SqliteCommandPackage(commandText: '$generalCommandText ?', shieldedValues: [command.value]);
     } else {
       final textualValue = command.value is String ? '\'${command.value}\'' : command.value.toString();
-      return SqliteCommandPackage(commandText: '$generalCommandText $textualValue', shieldedValues: [command.value]);
+      return SqliteCommandPackage(commandText: '$generalCommandText $textualValue', shieldedValues: []);
     }
   }
 
   static SqliteCommandPackage _convertField(CompareFields command) {
+
+
+    
     return SqliteCommandPackage(commandText: '"${command.originField}" ${convertConditionCompareToText(command.typeComparation)} "${command.compareField}"', shieldedValues: []);
   }
 
@@ -34,9 +38,9 @@ mixin ConditionCommandAdapterSqlite {
     final buffer = StringBuffer();
 
     if (command.isInclusive) {
-      buffer.write('IN (');
+      buffer.write('\'${command.fieldName}\' IN (');
     } else {
-      buffer.write('NOT IN (');
+      buffer.write('\'${command.fieldName}\' NOT IN (');
     }
 
     if (command.shieldValue) {

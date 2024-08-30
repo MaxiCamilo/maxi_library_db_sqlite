@@ -57,6 +57,8 @@ mixin QueryCommandAdapterSqlite {
       late String text;
       if (field.fieldName == '') {
         text = '*';
+      } else if (field.tableName != '') {
+        text = '"${field.tableName}"."${field.fieldName}"';
       } else {
         text = '"${field.fieldName}"';
       }

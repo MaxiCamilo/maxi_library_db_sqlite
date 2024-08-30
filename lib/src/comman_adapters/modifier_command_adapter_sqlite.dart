@@ -5,10 +5,11 @@ import 'package:maxi_library_db_sqlite/src/sqlite_command_package.dart';
 
 mixin ModifierCommandAdapterSqlite {
   static SqliteCommandPackage convertToPackage({required ModifierCommand command}) {
-    final shieldedValues = command.fieldData.values.toList();
+    final shieldedValues = command.dataField.values.toList();
     final buffer = StringBuffer('UPDATE "${command.tableName}" SET \n ');
 
-    final propertyNames = command.fieldData.keys.map((x) => '$x = ?');
+    //TODO Check this, need quotes?
+    final propertyNames = command.dataField.keys.map((x) => '$x = ?');
     buffer.write(TextUtilities.generateCommand(list: propertyNames.map((x) => '"$x"')));
 
     if (command.conditions.isNotEmpty) {

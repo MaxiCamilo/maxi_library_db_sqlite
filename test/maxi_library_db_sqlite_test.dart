@@ -97,14 +97,14 @@ void main() {
 
       IDataBaseCommand command = AggregatorCommand(
         tableName: 'super_persons',
-        fieldData: {'code': 45, 'firstName': 'Maxi', 'lastName': 'Camilo', 'isAdmin': true, 'description': 'The master developer who doesn\'t know English'},
+        dataField: {'code': 45, 'firstName': 'Maxi', 'lastName': 'Camilo', 'isAdmin': true, 'description': 'The master developer who doesn\'t know English'},
       );
 
       await engine.executeCommand(command: command);
 
       command = AggregatorCommand(
         tableName: 'villains',
-        fieldData: {'codeperson': 45, 'evillevel': 101},
+        dataField: {'codeperson': 45, 'evillevel': 101},
       );
 
       await engine.executeCommand(command: command);
@@ -148,7 +148,7 @@ void main() {
           i += list.length;
 
           for (final item in list) {
-            await instance.executeCommand(command: AggregatorCommand(tableName: 'many_items', fieldData: item));
+            await instance.executeCommand(command: AggregatorCommand(tableName: 'many_items', dataField: item));
           }
         }
 

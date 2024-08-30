@@ -13,7 +13,7 @@ class DatabaseSqliteConfiguration with IDataBaseConfiguration {
   DatabaseSqliteConfiguration();
 
   @override
-  IDataBaseEngine generateEngine() {
+  DataBaseEngineSqlite generateEngine() {
     return DataBaseEngineSqlite(configuration: this);
   }
 }

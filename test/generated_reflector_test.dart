@@ -11,6 +11,10 @@ void main() {
     });
 
     test('Generate reflectors', () async {
+      await BuildReflectors.makeFilesReflection(mainFileDirection: 'lib/src/reflection/reflection_implementation.dart');
+    });
+
+    test('Generate reflectors test', () async {
       await BuildReflectors.makeFilesReflection(mainFileDirection: 'test/models/reflector_test.dart');
     });
   });

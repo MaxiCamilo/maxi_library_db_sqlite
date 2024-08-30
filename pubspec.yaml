@@ -4,12 +4,13 @@ version: 1.0.0
 publish_to: none
 
 environment:
-  sdk: ^3.5.0
+  sdk: ^3.5.1
 
 # Add regular dependencies here.
 dependencies:
   sqlite3: ^2.4.6
   reflectable: ^4.0.9
+  meta: ^1.15.0
   # path: ^1.8.0
 
   maxi_library:
@@ -20,7 +21,7 @@ dependencies:
 
   maxi_library_db:
   #git:
-    #  url: https://github.com/MaxiCamilo/maxi_library.git
+    #  url: https://github.com/MaxiCamilo/maxi_library_db.git
     #  ref: main
     path: ../maxi_library_db
 

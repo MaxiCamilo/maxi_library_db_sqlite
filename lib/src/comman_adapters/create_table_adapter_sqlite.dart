@@ -38,7 +38,7 @@ mixin CreateTableAdapterSqlite {
         continue;
       }
 
-      buffer.write(' PRIMARY KEY (${TextUtilities.generateCommand(list: pri)})\n');
+      buffer.write(' PRIMARY KEY (${TextUtilities.generateCommand(list: pri.map((x) => '"$x"'))})\n');
     }
 
     for (final uni in command.uniqueKeyGroups) {
@@ -46,7 +46,7 @@ mixin CreateTableAdapterSqlite {
         continue;
       }
 
-      buffer.write(' UNIQUE (${TextUtilities.generateCommand(list: uni)})\n');
+      buffer.write(' UNIQUE (${TextUtilities.generateCommand(list: uni.map((x) => '"$x"'))})\n');
     }
 
     for (final fore in command.foreignKeys) {
