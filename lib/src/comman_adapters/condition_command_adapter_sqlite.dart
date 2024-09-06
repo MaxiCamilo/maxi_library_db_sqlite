@@ -16,7 +16,7 @@ mixin ConditionCommandAdapterSqlite {
 
   //Ex: name = 'Maxi' (or shieldValue == true: name = ?)
   static SqliteCommandPackage _convertCompareValue(CompareValue command) {
-    String generalCommandText = command.selectedTable.isNotEmpty ? '"${command.selectedTable}"."${command.originField}"' : '"${command.originField}"';
+    String generalCommandText = command.selectedTable.isNotEmpty ? '\'${command.selectedTable}\'.\'${command.originField}\'' : '\'${command.originField}\'';
     generalCommandText += ' ${convertConditionCompareToText(command.typeComparation)} ';
 
     if (command.shieldValue) {
@@ -28,19 +28,26 @@ mixin ConditionCommandAdapterSqlite {
   }
 
   static SqliteCommandPackage _convertField(CompareFields command) {
+    String generalCommandText = command.originFieldTable.isNotEmpty ? '\'${command.originFieldTable}\'.\'${command.originField}\'' : '\'${command.originField}\'';
+    generalCommandText += ' ${convertConditionCompareToText(command.typeComparation)} ';
+    generalCommandText += command.compareFieldTable.isNotEmpty ? '\'${command.compareFieldTable}\'.\'${command.compareField}\'' : '\'${command.compareField}\'';
 
-
-    
-    return SqliteCommandPackage(commandText: '"${command.originField}" ${convertConditionCompareToText(command.typeComparation)} "${command.compareField}"', shieldedValues: []);
+    return SqliteCommandPackage(commandText: generalCommandText, shieldedValues: []);
   }
 
   static SqliteCommandPackage _convertIncludeValues(CompareIncludesValues command) {
     final buffer = StringBuffer();
 
-    if (command.isInclusive) {
-      buffer.write('\'${command.fieldName}\' IN (');
+    if (command.selectedTable.isNotEmpty) {
+      buffer.write('\'${command.selectedTable}\'.\'${command.fieldName}\'');
     } else {
-      buffer.write('\'${command.fieldName}\' NOT IN (');
+      buffer.write('\'${command.fieldName}\'');
+    }
+
+    if (command.isInclusive) {
+      buffer.write(' IN (');
+    } else {
+      buffer.write(' NOT IN (');
     }
 
     if (command.shieldValue) {
@@ -71,10 +78,12 @@ mixin ConditionCommandAdapterSqlite {
   }
 
   static SqliteCommandPackage _convertSimilarText(CompareSimilarText command) {
+    late final String commandText = command.selectedTable.isNotEmpty ? '\'${command.selectedTable}\'.\'${command.fieldName}\'' : '\'${command.fieldName}\'';
+
     if (command.shieldValue) {
-      return SqliteCommandPackage(commandText: '"${command.fieldName}" LIKE ?', shieldedValues: [command.similarText]);
+      return SqliteCommandPackage(commandText: '$commandText LIKE ?', shieldedValues: [command.similarText]);
     } else {
-      return SqliteCommandPackage(commandText: '"${command.fieldName}" LIKE \'${command.similarText}\'', shieldedValues: []);
+      return SqliteCommandPackage(commandText: '$commandText LIKE \'${command.similarText}\'', shieldedValues: []);
     }
   }
 

@@ -10,6 +10,14 @@ void main() {
       // Additional setup goes here.
     });
 
+    test('Generate file reflect', () {
+      ReflectorGenerator(directories: ['${DirectoryUtilities.prefixRouteLocal}/lib'], fileCreationPlace: '${DirectoryUtilities.prefixRouteLocal}/lib/src/reflection', albumName: 'MaxiLibraryDbSqlite').build();
+    });
+
+    /*
+
+    
+
     test('Generate reflectors', () async {
       await BuildReflectors.makeFilesReflection(mainFileDirection: 'lib/src/reflection/reflection_implementation.dart');
     });
@@ -17,5 +25,6 @@ void main() {
     test('Generate reflectors test', () async {
       await BuildReflectors.makeFilesReflection(mainFileDirection: 'test/models/reflector_test.dart');
     });
+    */
   });
 }

@@ -1,8 +1,8 @@
 import 'package:maxi_library/maxi_library.dart';
 import 'package:maxi_library_db/maxi_library_db.dart';
-import 'package:maxi_library_db_sqlite/src/reflection/reflection_implementation.dart';
+import 'package:maxi_library_db_sqlite/maxi_library_db_sqlite.dart';
 
-@reflectByMaxiLibraryDbSqlite
+@reflect
 class DatabaseSqliteConfiguration with IDataBaseConfiguration {
   @CheckTextLength(minimum: 4, maximum: 515)
   String fileDirection = '';

@@ -5,16 +5,16 @@ import 'dart:typed_data';
 
 import 'package:maxi_library/maxi_library.dart';
 import 'package:maxi_library_db/maxi_library_db.dart';
+import 'package:maxi_library_db_sqlite/maxi_library_db_sqlite.dart';
 import 'package:maxi_library_db_sqlite/src/comman_adapters/aggregator_command_adapter_sqlite.dart';
 import 'package:maxi_library_db_sqlite/src/comman_adapters/create_table_adapter_sqlite.dart';
 import 'package:maxi_library_db_sqlite/src/comman_adapters/delete_command_adapter_sqlite.dart';
 import 'package:maxi_library_db_sqlite/src/comman_adapters/modifier_command_adapter_sqlite.dart';
 import 'package:maxi_library_db_sqlite/src/comman_adapters/query_command_adapter_sqlite.dart';
-import 'package:maxi_library_db_sqlite/src/reflection/reflection_implementation.dart';
 import 'package:maxi_library_db_sqlite/src/sqlite_command_package.dart';
 import 'package:sqlite3/sqlite3.dart';
 
-@reflectByMaxiLibraryDbSqlite
+@reflect
 class DataBaseEngineSqlite extends DataBaseEngineTemplate {
   final DatabaseSqliteConfiguration configuration;
 
