@@ -1,5 +1,4 @@
 import 'package:maxi_library/maxi_library.dart';
-import 'package:maxi_library_db/maxi_library_db.dart';
 import 'package:maxi_library_db_sqlite/src/sqlite_command_package.dart';
 
 mixin ConditionCommandAdapterSqlite {
