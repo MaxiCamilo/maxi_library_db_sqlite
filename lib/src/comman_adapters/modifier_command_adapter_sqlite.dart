@@ -8,9 +8,8 @@ mixin ModifierCommandAdapterSqlite {
     final shieldedValues = command.dataField.values.toList();
     final buffer = StringBuffer('UPDATE "${command.tableName}" SET \n ');
 
-    //TODO Check this, need quotes?
-    final propertyNames = command.dataField.keys.map((x) => '$x = ?');
-    buffer.write(TextUtilities.generateCommand(list: propertyNames.map((x) => '"$x"')));
+    final propertyNames = command.dataField.keys.map((x) => '"$x" = ?');
+    buffer.write(TextUtilities.generateCommand(list: propertyNames.map((x) => x)));
 
     if (command.conditions.isNotEmpty) {
       buffer.write('\n WHERE ');

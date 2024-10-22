@@ -204,12 +204,14 @@ class DataBaseEngineSqlite extends DataBaseEngineTemplate {
     final commandText = 'SELECT * FROM sqlite_master WHERE type=\'table\' AND name=?;';
     checkProgrammingFailure(thatChecks: tr('The database instance was created previously'), result: () => _instance != null);
 
-    if (!await checkTableExists(tableName: tableName)) {
+    /*
+    if (!await checkTableExistsDirectly(tableName: tableName)) {
       throw NegativeResult(
         identifier: NegativeResultCodes.nonExistent,
         message: tr('Table %1 cannot be found', [tableName]),
       );
     }
+    */
 
     final table = executeQueryPackage(SqliteCommandPackage(commandText: commandText, shieldedValues: [tableName]));
     return table.isNotEmpty;
