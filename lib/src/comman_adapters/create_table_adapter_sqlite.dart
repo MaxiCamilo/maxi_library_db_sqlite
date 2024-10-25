@@ -15,7 +15,7 @@ mixin CreateTableAdapterSqlite {
     final buffer = StringBuffer('CREATE TABLE ${command.name} (\n');
 
     for (final col in command.columns) {
-      buffer.write(' "${col.nameColumn}" ${_convertColumnType(col.type)} NOT NULL');
+      buffer.write(' "${col.nameColumn}" ${_convertColumnType(col.columnType)} NOT NULL');
       if (col.isPrimaryKey && col.isAutoIncrement) {
         buffer.write(' PRIMARY KEY AUTOINCREMENT');
       }
@@ -84,7 +84,7 @@ mixin CreateTableAdapterSqlite {
     final buffer = StringBuffer('CREATE TABLE ${command.name} (\n');
 
     for (final col in command.columns) {
-      buffer.write(' "${col.nameColumn}" ${_convertColumnType(col.type)} NOT NULL');
+      buffer.write(' "${col.nameColumn}" ${_convertColumnType(col.columnType)} NOT NULL');
       if (col.isPrimaryKey && col.isAutoIncrement) {
         buffer.write(' PRIMARY KEY AUTOINCREMENT');
       }
