@@ -10,8 +10,8 @@ void main() {
       // Additional setup goes here.
     });
 
-    test('Generate file reflect', () {
-      ReflectorGenerator(directories: ['${DirectoryUtilities.prefixRouteLocal}/lib'], fileCreationPlace: '${DirectoryUtilities.prefixRouteLocal}/lib/src/reflection', albumName: 'MaxiLibraryDbSqlite').build();
+    test('Generate file reflect', () async {
+      await ReflectorGenerator(directories: ['${DirectoryUtilities.prefixRouteLocal}/lib'], fileCreationPlace: '${DirectoryUtilities.prefixRouteLocal}/lib/src/reflection', albumName: 'MaxiLibraryDbSqlite').build();
     });
 
     /*

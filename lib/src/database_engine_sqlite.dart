@@ -1,7 +1,5 @@
 import 'dart:async';
 import 'dart:developer';
-import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:maxi_library/maxi_library.dart';
 import 'package:maxi_library_db/maxi_library_db.dart';
@@ -18,10 +16,10 @@ import 'package:sqlite3/sqlite3.dart';
 class DataBaseEngineSqlite extends DataBaseEngineTemplate {
   final DatabaseSqliteConfiguration configuration;
 
-  late final String fileDirection;
+  late final FileOperatorNative fileDirection;
 
   DataBaseEngineSqlite({required this.configuration}) {
-    fileDirection = DirectoryUtilities.interpretPrefix(configuration.fileDirection);
+    fileDirection = FileOperatorNative(rawRoute: configuration.fileDirection, isLocal: false);
   }
 
   @override
@@ -42,7 +40,7 @@ class DataBaseEngineSqlite extends DataBaseEngineTemplate {
     await _createFileDB();
 
     try {
-      _instance = sqlite3.open(fileDirection);
+      _instance = sqlite3.open(fileDirection.route);
     } catch (ex) {
       throw NegativeResult(
         identifier: NegativeResultCodes.externalFault,
@@ -57,14 +55,12 @@ class DataBaseEngineSqlite extends DataBaseEngineTemplate {
       return;
     }
 
-    final file = File(fileDirection);
-
-    if (await file.exists()) {
+    if (await fileDirection.existsFile()) {
       _checkedFileExists = true;
       return;
     }
 
-    await DirectoryUtilities.writeFileSecured(fileDirection: fileDirection, content: Uint8List(0));
+    await fileDirection.createAsFile(secured: true);
     _checkedFileExists = true;
   }
 
