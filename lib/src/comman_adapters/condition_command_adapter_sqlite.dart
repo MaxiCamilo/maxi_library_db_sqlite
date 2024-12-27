@@ -80,7 +80,7 @@ mixin ConditionCommandAdapterSqlite {
     late final String commandText = command.selectedTable.isNotEmpty ? '"${command.selectedTable}"."${command.fieldName}"' : '"${command.fieldName}"';
 
     if (command.shieldValue) {
-      return SqliteCommandPackage(commandText: '$commandText LIKE ?', shieldedValues: [command.similarText]);
+      return SqliteCommandPackage(commandText: '$commandText LIKE ?', shieldedValues: ['%${command.similarText}%']);
     } else {
       return SqliteCommandPackage(commandText: '$commandText LIKE \'${command.similarText}\'', shieldedValues: []);
     }
