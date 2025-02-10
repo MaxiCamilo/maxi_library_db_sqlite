@@ -44,7 +44,7 @@ class DataBaseEngineSqlite extends DataBaseEngineTemplate {
     } catch (ex) {
       throw NegativeResult(
         identifier: NegativeResultCodes.externalFault,
-        message: tr('An attempt was made to open an SQLite database located at %1, but an error occurred: %2', [fileDirection, ex.toString()]),
+        message: Oration(message: 'An attempt was made to open an SQLite database located at %1, but an error occurred: %2', textParts: [fileDirection, ex.toString()]),
         cause: ex,
       );
     }
@@ -85,14 +85,14 @@ class DataBaseEngineSqlite extends DataBaseEngineTemplate {
     }
     _databaseShutdownWaiter = null;
     if (_instance != null) {
-      containErrorLog(detail: tr('Close Database located at %1', [fileDirection]), function: () => _instance!.dispose());
+      containErrorLog(detail: Oration(message: 'Close Database located at %1', textParts: [fileDirection]), function: () => _instance!.dispose());
       _instance = null;
     }
   }
 
   @override
   Future<void> createTransaction() async {
-    checkProgrammingFailure(thatChecks: tr('The database instance was created previously'), result: () => _instance != null);
+    checkProgrammingFailure(thatChecks: Oration(message: 'The database instance was created previously'), result: () => _instance != null);
 
     if (_inTransaction) {
       return;
@@ -104,8 +104,8 @@ class DataBaseEngineSqlite extends DataBaseEngineTemplate {
 
   @override
   Future<void> commitTransaction() async {
-    checkProgrammingFailure(thatChecks: tr('The database instance was created previously'), result: () => _instance != null);
-    checkProgrammingFailure(thatChecks: tr('The database instance is in a transaction'), result: () => _inTransaction);
+    checkProgrammingFailure(thatChecks: Oration(message: 'The database instance was created previously'), result: () => _instance != null);
+    checkProgrammingFailure(thatChecks: Oration(message: 'The database instance is in a transaction'), result: () => _inTransaction);
 
     _instance!.execute('COMMIT;');
     _inTransaction = false;
@@ -113,7 +113,7 @@ class DataBaseEngineSqlite extends DataBaseEngineTemplate {
 
   @override
   Future<void> rollbackTransaction() async {
-    checkProgrammingFailure(thatChecks: tr('The database instance was created previously'), result: () => _instance != null);
+    checkProgrammingFailure(thatChecks: Oration(message: 'The database instance was created previously'), result: () => _instance != null);
 
     if (!_inTransaction) {
       return;
@@ -130,40 +130,40 @@ class DataBaseEngineSqlite extends DataBaseEngineTemplate {
   }
 
   void executeDirectCommand(SqliteCommandPackage package) {
-    checkProgrammingFailure(thatChecks: tr('The database instance was created previously'), result: () => _instance != null);
+    checkProgrammingFailure(thatChecks: Oration(message: 'The database instance was created previously'), result: () => _instance != null);
     try {
       _instance!.execute(package.commandText, serializeListToDatabase(package.shieldedValues));
     } catch (ex) {
       throw NegativeResult(
         identifier: NegativeResultCodes.externalFault,
-        message: tr('The execution of a command in the database failed, the error was: %1', [ex.toString()]),
+        message: Oration(message: 'The execution of a command in the database failed, the error was: %1', textParts: [ex.toString()]),
         cause: ex,
       );
     }
   }
 
   TableResult executeQueryPackage(SqliteCommandPackage package) {
-    checkProgrammingFailure(thatChecks: tr('The database instance was created previously'), result: () => _instance != null);
+    checkProgrammingFailure(thatChecks: Oration(message: 'The database instance was created previously'), result: () => _instance != null);
     try {
       final result = _instance!.select(package.commandText, serializeListToDatabase(package.shieldedValues));
       return TableResult(columnsName: result.columnNames, values: result.rows);
     } catch (ex) {
       throw NegativeResult(
         identifier: NegativeResultCodes.externalFault,
-        message: tr('The execution of a query in the database failed, the error was: %1', [ex.toString()]),
+        message: Oration(message: 'The execution of a query in the database failed, the error was: %1', textParts: [ex.toString()]),
         cause: ex,
       );
     }
   }
 
   void executePackage(SqliteCommandPackage package) {
-    checkProgrammingFailure(thatChecks: tr('The database instance was created previously'), result: () => _instance != null);
+    checkProgrammingFailure(thatChecks: Oration(message: 'The database instance was created previously'), result: () => _instance != null);
     try {
       _instance!.execute(package.commandText, serializeListToDatabase(package.shieldedValues));
     } catch (ex) {
       throw NegativeResult(
         identifier: NegativeResultCodes.externalFault,
-        message: tr('The execution of a command in the database failed, the error was: %1', [ex.toString()]),
+        message: Oration(message: 'The execution of a command in the database failed, the error was: %1', textParts: [ex.toString()]),
         cause: ex,
       );
     }
@@ -184,7 +184,7 @@ class DataBaseEngineSqlite extends DataBaseEngineTemplate {
   @override
   Future<List<String>> getTableColumnsNameDirectly({required String tableName}) async {
     final commandText = 'PRAGMA table_info($tableName);';
-    checkProgrammingFailure(thatChecks: tr('The database instance was created previously'), result: () => _instance != null);
+    checkProgrammingFailure(thatChecks: Oration(message: 'The database instance was created previously'), result: () => _instance != null);
 
     final table = executeQueryPackage(SqliteCommandPackage(commandText: commandText, shieldedValues: []));
 
@@ -198,13 +198,13 @@ class DataBaseEngineSqlite extends DataBaseEngineTemplate {
   @override
   Future<bool> checkTableExistsDirectly({required String tableName}) async {
     final commandText = 'SELECT * FROM sqlite_master WHERE type=\'table\' AND name=?;';
-    checkProgrammingFailure(thatChecks: tr('The database instance was created previously'), result: () => _instance != null);
+    checkProgrammingFailure(thatChecks: Oration(message: 'The database instance was created previously'), result: () => _instance != null);
 
     /*
     if (!await checkTableExistsDirectly(tableName: tableName)) {
       throw NegativeResult(
         identifier: NegativeResultCodes.nonExistent,
-        message: tr('Table %1 cannot be found', [tableName]),
+        message: Oration(message:'Table %1 cannot be found', [tableName]),
       );
     }
     */
@@ -236,7 +236,7 @@ class DataBaseEngineSqlite extends DataBaseEngineTemplate {
       if (await checkTableExistsDirectly(tableName: command.name)) {
         throw NegativeResult(
           identifier: NegativeResultCodes.contextInvalidFunctionality,
-          message: tr('The %1 table is already defined', [command.name]),
+          message: Oration(message: 'The %1 table is already defined', textParts: [command.name]),
         );
       }
 
@@ -246,13 +246,13 @@ class DataBaseEngineSqlite extends DataBaseEngineTemplate {
     if (command is QueryCommand) {
       throw NegativeResult(
         identifier: NegativeResultCodes.implementationFailure,
-        message: tr('A query command was attempted to be executed within a direct command function'),
+        message: Oration(message: 'A query command was attempted to be executed within a direct command function'),
       );
     }
 
     throw NegativeResult(
       identifier: NegativeResultCodes.implementationFailure,
-      message: tr('Command type %1 is unknown for the sqlite engine', [command.runtimeType.toString()]),
+      message: Oration(message: 'Command type %1 is unknown for the sqlite engine', textParts: [command.runtimeType.toString()]),
     );
   }
 }

@@ -9,7 +9,7 @@ mixin ConditionCommandAdapterSqlite {
       const (CompareIncludesValues) => _convertIncludeValues(command as CompareIncludesValues),
       const (CompareMultipleComparisons) => _convertToMultipleComparisons(command as CompareMultipleComparisons),
       const (CompareSimilarText) => _convertSimilarText(command as CompareSimilarText),
-      _ => throw NegativeResult(identifier: NegativeResultCodes.implementationFailure, message: tr('Condition type is unkowned')),
+      _ => throw NegativeResult(identifier: NegativeResultCodes.implementationFailure, message: Oration(message: 'Condition type is unkowned')),
     };
   }
 
