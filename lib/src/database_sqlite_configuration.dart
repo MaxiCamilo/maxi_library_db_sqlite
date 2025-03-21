@@ -13,7 +13,14 @@ class DatabaseSqliteConfiguration with IDataBaseConfiguration {
   DatabaseSqliteConfiguration();
 
   @override
-  DataBaseEngineSqlite generateEngine() {
-    return DataBaseEngineSqlite(configuration: this);
+  DataBaseEngineSqlite generateEngine({
+    List<ISemaphore> synchronizerSemaphores = const [],
+    List<ISemaphore> lockersSemaphores = const [],
+  }) {
+    return DataBaseEngineSqlite(
+      configuration: this,
+      synchronizerSemaphores: synchronizerSemaphores,
+      lockersSemaphores: lockersSemaphores,
+    );
   }
 }

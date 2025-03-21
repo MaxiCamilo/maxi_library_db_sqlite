@@ -18,7 +18,11 @@ class DataBaseEngineSqlite extends DataBaseEngineTemplate {
 
   late final FileOperatorNative fileDirection;
 
-  DataBaseEngineSqlite({required this.configuration}) {
+  DataBaseEngineSqlite({
+    required this.configuration,
+    super.synchronizerSemaphores = const [],
+    super.lockersSemaphores = const [],
+  }) {
     fileDirection = FileOperatorNative(rawRoute: configuration.fileDirection, isLocal: false);
   }
 
@@ -83,6 +87,8 @@ class DataBaseEngineSqlite extends DataBaseEngineTemplate {
       log('[DataBaseEngineSqlite] DANGER! An attempt to close the database failed due to an active transaction');
       return;
     }
+
+    _databaseShutdownWaiter?.cancel();
     _databaseShutdownWaiter = null;
     if (_instance != null) {
       containErrorLog(detail: Oration(message: 'Close Database located at %1', textParts: [fileDirection]), function: () => _instance!.dispose());
@@ -254,5 +260,37 @@ class DataBaseEngineSqlite extends DataBaseEngineTemplate {
       identifier: NegativeResultCodes.implementationFailure,
       message: Oration(message: 'Command type %1 is unknown for the sqlite engine', textParts: [command.runtimeType.toString()]),
     );
+  }
+
+  Future<void> defragmentDatabase() => reserveEngine(function: (_) async {
+        executeDirectCommand(SqliteCommandPackage(commandText: 'VACUUM;', shieldedValues: const []));
+      });
+
+  Future<void> resetDatabase() {
+    return closeDatabasePermanently(() async {
+      try {
+        await fileDirection.deleteFile();
+      } catch (ex) {
+        throw NegativeResult(
+          identifier: NegativeResultCodes.externalFault,
+          message: Oration(
+            message: 'The database could not be deleted, the error was: %1',
+            textParts: [ex.toString()],
+          ),
+        );
+      }
+
+      await _createFileDB();
+    });
+  }
+
+  @override
+  Future<void> closeDatabasePermanently([FutureOr<void> Function()? reservedFunction]) {
+    return internalReserveEngine(function: () async {
+      _closeDataBase();
+      if (reservedFunction != null) {
+        await reservedFunction();
+      }
+    });
   }
 }
