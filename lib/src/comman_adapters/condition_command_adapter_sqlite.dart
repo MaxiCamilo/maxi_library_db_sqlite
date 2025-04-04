@@ -9,6 +9,7 @@ mixin ConditionCommandAdapterSqlite {
       const (CompareIncludesValues) => _convertIncludeValues(command as CompareIncludesValues),
       const (CompareMultipleComparisons) => _convertToMultipleComparisons(command as CompareMultipleComparisons),
       const (CompareSimilarText) => _convertSimilarText(command as CompareSimilarText),
+      const (CompareSimilarNumber) => _convertSimilarNumber(command as CompareSimilarNumber),
       _ => throw NegativeResult(identifier: NegativeResultCodes.implementationFailure, message: Oration(message: 'Condition type is unkowned')),
     };
   }
@@ -95,5 +96,17 @@ mixin ConditionCommandAdapterSqlite {
       ConditionCompareType.greaterEqual => '>=',
       ConditionCompareType.lessEqual => '<=',
     };
+  }
+
+  static _convertSimilarNumber(CompareSimilarNumber command) {
+    late final String commandText = command.selectedTable.isNotEmpty ? '"${command.selectedTable}"."${command.fieldName}"' : '"${command.fieldName}"';
+
+    if (command.shieldValue) {
+      //WHERE CAST(id AS TEXT) LIKE '%' || ? || '%';
+      return SqliteCommandPackage(commandText: 'CAST($commandText AS TEXT) LIKE ?', shieldedValues: ['%${command.similarNumber}%']);
+    } else {
+      //WHERE CAST(id AS TEXT) LIKE '%21%';
+      return SqliteCommandPackage(commandText: 'CAST($commandText AS TEXT) LIKE \'%${command.similarNumber}\'%', shieldedValues: []);
+    }
   }
 }
