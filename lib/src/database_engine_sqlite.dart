@@ -184,7 +184,7 @@ class DataBaseEngineSqlite extends DataBaseEngineTemplate {
       return item;
     }
 
-    return ReflectionUtilities.primitiveClone(item);
+    return ConverterUtilities.primitiveClone(item);
   }
 
   @override
